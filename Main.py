@@ -81,16 +81,31 @@ known_actions = {
     "average_dog_weight": average_dog_weight
 }
 
-abot = Agent(system=prompt)
-question = """I have 2 dogs, a border collie and a scottish terrirer.\
-    What is their combined weight?"""
-abot(question)
+action_re = re.compile(r'^Action: (\w+): (.*)$')
 
-next_prompt = "Observation: {}".format(average_dog_weight("Border Collie"))
-abot(next_prompt)
+def query(question, max_turns=5):
+    i = 0
+    bot = Agent(system=prompt)
+    next_prompt = question
+    while i < max_turns:
+        i += 1
+        result = bot(next_prompt)
+        print(result)
+        actions = [
+            action_re.match(a)
+            for a in result.split('\n')
+            if action_re.match(a)
+        ]
+        if actions:
+            action, action_input = actions[0].groups()
+            if action not in known_actions:
+                raise Exception("Unknown action: {}: {}".format(action, action_input))
+            print(" -- running {} {}".format(action, action_input))
+            observation = known_actions[action](action_input)
+            next_prompt = "Observation: {}".format(observation)
+        else:
+            return
 
-next_prompt = "Observation: {}".format(average_dog_weight("Scottish Terrier"))
-abot(next_prompt)
-
-next_prompt = "Observation: {}".format(calculate("37 + 20"))
-print(abot(next_prompt))
+question = """I have 2 dogs, a border collie and a scottish terrier. \
+What is their combined weight"""
+query(question)
