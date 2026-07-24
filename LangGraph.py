@@ -54,3 +54,18 @@ class Agent:
             results.append(ToolMessage(tool_call_id=t['id'], name=t['name'], content=str(result)))
         print("Back to the model!")
         return {"messages": results}
+
+prompt = """You are a smart research assistant. Use the search engine to look up information. \
+You are allowed to make multiple calls (either together or in sequence). \
+Only look up information when you are sure of what you want. \
+If you need to look up some information before asking a follow up question, you are allowed to do that!
+"""
+
+model = ChatOpenAI(model="gpt-3.5-turbo")
+abot = Agent(model, [tool], system=prompt)
+
+# messages = [HumanMessage(content="What is the weather in sf?")]
+# messages = [HumanMessage(content="What is the weather in SF and LA?")]
+messages = [HumanMessage(content="Who whon the super bowl in 2024? What is the GDP of that state?")]
+result = abot.graph.invoke({"messages": messages})
+print(result['messages'][-1].content)
